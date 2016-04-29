@@ -11,6 +11,7 @@ using Microsoft.Azure.Devices.Common.Exceptions;
 using Microsoft.Azure.Mobile.Server;
 using Microsoft.Azure.Mobile.Server.Config;
 using MyDrivingService.Models;
+using Microsoft.ApplicationInsights;
 
 namespace MyDrivingService.Controllers
 {
@@ -35,6 +36,7 @@ namespace MyDrivingService.Controllers
         [Authorize]
         public async Task<IHttpActionResult> Post(string userId, string deviceName)
         {
+            var aiTelemetry = new TelemetryClient();
             Device device = null;
             EnsureRegistryManagerInitialized();
             MobileAppSettingsDictionary settings = Configuration.GetMobileAppSettingsProvider().GetMobileAppSettings();
@@ -64,9 +66,9 @@ namespace MyDrivingService.Controllers
             {
                 device = await registryManager.GetDeviceAsync(deviceName);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-
+                aiTelemetry.TrackException(e);
             }
 
             if (device == null)  //device not found 
@@ -87,6 +89,7 @@ namespace MyDrivingService.Controllers
                 }
                 catch (Exception e)
                 {
+                    aiTelemetry.TrackException(e);
                     return BadRequest("Device provisioning failed on server with exception " + e.Message);
                 }
             }
