@@ -58,6 +58,7 @@ namespace MyDrivingService.Controllers
 
             if (curUser.Devices.Count >= maxDevices)
             {
+                aiTelemetry.TrackEvent("Max number of devices reached for user = " + curUser.Id);
                 return BadRequest("You already have more than the maximum number of devices");
             }
 
@@ -84,16 +85,19 @@ namespace MyDrivingService.Controllers
                     }
                     else  //registration failed
                     {
+                        aiTelemetry.TrackEvent(String.Format("Registration failed for device {0}", deviceName));
                         return BadRequest("Error. Cannot register device");
                     }
                 }
                 catch (Exception e)
                 {
                     aiTelemetry.TrackException(e);
+                    aiTelemetry.TrackEvent(String.Format("Registration failed for device {0}", deviceName));
                     return BadRequest("Device provisioning failed on server with exception " + e.Message);
                 }
             }
 
+            aiTelemetry.TrackEvent(String.Format("New device registered for user {0}. Total devices: {1}", curUser.Id, curUser.Devices));
             return Created("api/provision", device?.Authentication?.SymmetricKey?.PrimaryKey);
         }
 
