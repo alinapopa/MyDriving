@@ -88,7 +88,7 @@ namespace MyDrivingService.Controllers
             var aiTelemetry = new TelemetryClient();
             var pointsCount = trip?.Points?.Count ?? 0;
             if(pointsCount > 1000)
-                aiTelemetry.TrackEvent(string.Format("Saved trip {0}. Points:{1}", current.Id, trip?.Points?.Count));
+                aiTelemetry.TrackEvent(string.Format("Saved trip {0}. Points:{1}", current.Id, pointsCount));
 
             return CreatedAtRoute("Tables", new {id = current.Id}, current);
         }
