@@ -97,7 +97,7 @@ namespace MyDrivingService.Controllers
                 }
             }
 
-            aiTelemetry.TrackEvent(String.Format("New device registered for user {0}. Total devices: {1}", curUser.Id, curUser.Devices));
+            aiTelemetry.TrackEvent(String.Format("New device registered for user {0}. Total devices: {1}", curUser.Id, curUser.Devices.Count));
             return Created("api/provision", device?.Authentication?.SymmetricKey?.PrimaryKey);
         }
 
