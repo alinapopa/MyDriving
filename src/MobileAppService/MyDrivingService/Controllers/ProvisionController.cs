@@ -95,9 +95,9 @@ namespace MyDrivingService.Controllers
                     aiTelemetry.TrackEvent(String.Format("Registration failed for device {0}", deviceName));
                     return BadRequest("Device provisioning failed on server with exception " + e.Message);
                 }
+                aiTelemetry.TrackEvent(String.Format("New device {0} registered for user {1}. Total devices: {2}", deviceName, curUser.Id, curUser.Devices.Count));
             }
 
-            aiTelemetry.TrackEvent(String.Format("New device registered for user {0}. Total devices: {1}", curUser.Id, curUser.Devices.Count));
             return Created("api/provision", device?.Authentication?.SymmetricKey?.PrimaryKey);
         }
 
