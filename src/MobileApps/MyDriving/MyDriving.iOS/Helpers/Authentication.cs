@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Foundation;
-using MyDriving.Interfaces;
+using MyDriving.AzureClient;
 using MyDriving.Utils;
 using Microsoft.WindowsAzure.MobileServices;
 

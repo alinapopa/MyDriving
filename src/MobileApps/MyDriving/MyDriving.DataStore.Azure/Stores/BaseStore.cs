@@ -146,7 +146,7 @@ namespace MyDriving.DataStore.Azure.Stores
                     return false;
                 }
                 await PullLatestAsync().ConfigureAwait(false);
-                await client.SyncContext.PushAsync().ConfigureAwait(false);
+         //       await client.SyncContext.PushAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {

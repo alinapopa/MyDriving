@@ -4,7 +4,7 @@
 using Microsoft.WindowsAzure.MobileServices;
 using System.Threading.Tasks;
 
-namespace MyDriving.Interfaces
+namespace MyDriving.AzureClient
 {
     public interface IAuthentication
     {

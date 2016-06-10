@@ -12,6 +12,7 @@ using MyDriving.Shared;
 using MyDriving.Utils;
 using MyDriving.Utils.Interfaces;
 using HockeyApp;
+using MyDriving.AzureClient;
 
 namespace MyDriving.iOS
 {

@@ -13,6 +13,7 @@ using MyDriving.Utils;
 using MyDriving.UWP.Helpers;
 using MyDriving.UWP.Views;
 using MyDriving.UWP.Controls;
+using MyDriving.AzureClient;
 
 namespace MyDriving.UWP
 {

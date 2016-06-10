@@ -11,6 +11,7 @@ using MyDriving.Interfaces;
 using MyDriving.Droid.Helpers;
 using Acr.UserDialogs;
 using MyDriving.Shared;
+using MyDriving.AzureClient;
 
 namespace MyDriving.Droid
 {

@@ -5,7 +5,7 @@ using System;
 using MyDriving.Utils;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices;
-using MyDriving.Interfaces;
+using MyDriving.AzureClient;
 using Plugin.CurrentActivity;
 
 namespace MyDriving.Droid.Helpers

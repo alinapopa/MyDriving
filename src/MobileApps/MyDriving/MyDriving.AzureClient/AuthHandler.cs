@@ -9,64 +9,55 @@ using Microsoft.WindowsAzure.MobileServices;
 using System.Threading;
 using MyDriving.Utils;
 using System.Text;
+using Newtonsoft.Json.Linq;
+using MyDriving.Utils.Interfaces;
 
 namespace MyDriving.AzureClient
 {
     class AuthHandler : DelegatingHandler
     {
+        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+        private static bool isAuthenticating = false;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            var client = ServiceLocator.Instance.Resolve<IAzureClient>()?.Client as MobileServiceClient;
-            if (client == null)
-            {
-                throw new InvalidOperationException(
-                    "Make sure to set the ServiceLocator has an instance of IAzureClient");
-            }
-
             // Cloning the request, in case we need to send it again
             var clonedRequest = await CloneRequest(request);
             var response = await base.SendAsync(clonedRequest, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                // Oh noes, user is not logged in - we got a 401
-                // Log them in, this time hardcoded with Microsoft but you would
-                // trigger the login presentation in your application
+                if (isAuthenticating)
+                    return response;
+
+                await semaphore.WaitAsync();
+
+                isAuthenticating = true;
                 try
                 {
-                    var accountType = MobileServiceAuthenticationProvider.MicrosoftAccount;
-                    switch (Settings.Current.LoginAccount)
+                    if (!await RefreshToken())
                     {
-                        case LoginAccount.Facebook:
-                            accountType = MobileServiceAuthenticationProvider.Facebook;
-                            break;
-                        case LoginAccount.Twitter:
-                            accountType = MobileServiceAuthenticationProvider.Twitter;
-                            break;
+                        //refresh not successful
+                        await OpenLoginUI();
                     }
-                    var user = await client.LoginAsync(accountType, null);
-                    // we're now logged in again.
-
-                    // Clone the request
-                    clonedRequest = await CloneRequest(request);
-
-
-                    Settings.Current.AzureMobileUserId = user.UserId;
-                    Settings.Current.AuthToken = user.MobileServiceAuthenticationToken;
-
-                    clonedRequest.Headers.Remove("X-ZUMO-AUTH");
-                    // Set the authentication header
-                    clonedRequest.Headers.Add("X-ZUMO-AUTH", user.MobileServiceAuthenticationToken);
-
-                    // Resend the request
-                    response = await base.SendAsync(clonedRequest, cancellationToken);
                 }
-                catch (InvalidOperationException)
+                catch (System.Exception e)
                 {
-                    // user cancelled auth, so lets return the original response
-                    return response;
+                    Logger.Instance.Report(e);
                 }
+                finally
+                {
+                    isAuthenticating = false;
+                    semaphore.Release();
+                }
+
+                // Clone the request
+                clonedRequest = await CloneRequest(request);
+                clonedRequest.Headers.Remove("X-ZUMO-AUTH");
+                // Set the authentication header with the new token
+                clonedRequest.Headers.Add("X-ZUMO-AUTH", Settings.Current.AuthToken);
+                // Resend the request
+                response = await base.SendAsync(clonedRequest, cancellationToken);
             }
 
             return response;
@@ -96,5 +87,67 @@ namespace MyDriving.AzureClient
 
             return result;
         }
+
+        private async Task<bool> RefreshToken()
+        {
+            if (Settings.Current.LoginAccount != LoginAccount.Microsoft)
+                return false;
+
+            var client = ServiceLocator.Instance.Resolve<IAzureClient>()?.Client as MobileServiceClient;
+            if (client == null)
+            {
+                throw new InvalidOperationException(
+                    "Make sure to set the ServiceLocator has an instance of IAzureClient");
+            }
+
+            JObject refreshJson = (JObject)await client.InvokeApiAsync("/.auth/refresh", HttpMethod.Get, null);
+
+            if (refreshJson != null)
+            {
+                string newToken = refreshJson["authenticationToken"].Value<string>();
+                client.CurrentUser.MobileServiceAuthenticationToken = newToken;
+                Settings.Current.AuthToken = newToken;
+                return true;
+            }
+
+            return false;
+        }
+
+        private async Task<bool> OpenLoginUI()
+        {
+            var authentication = ServiceLocator.Instance.Resolve<IAuthentication>();
+            var client = ServiceLocator.Instance.Resolve<IAzureClient>()?.Client as MobileServiceClient;
+            if (client == null)
+            {
+                throw new InvalidOperationException(
+                    "Make sure to set the ServiceLocator has an instance of IAzureClient");
+            }
+            if (authentication == null)
+            {
+                throw new InvalidOperationException("Make sure to set the ServiceLocator has an instance of IAuthentication");
+            }
+
+            var accountType = MobileServiceAuthenticationProvider.MicrosoftAccount;
+            switch (Settings.Current.LoginAccount)
+            {
+                case LoginAccount.Facebook:
+                    accountType = MobileServiceAuthenticationProvider.Facebook;
+                    break;
+                case LoginAccount.Twitter:
+                    accountType = MobileServiceAuthenticationProvider.Twitter;
+                    break;
+            }
+            var user = await authentication.LoginAsync(client, accountType);
+
+            if (user != null)
+            {
+                Settings.Current.AzureMobileUserId = user.UserId;
+                Settings.Current.AuthToken = user.MobileServiceAuthenticationToken;
+                return true;
+            }
+            else
+                return false;
+        }
+
     }
 }
