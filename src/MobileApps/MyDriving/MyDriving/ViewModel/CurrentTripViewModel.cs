@@ -139,6 +139,8 @@ namespace MyDriving.ViewModel
             if (IsBusy || IsRecording)
                 return false;
 
+            await MyDriving.Helpers.AuthenticationHelper.CheckTokenExpired();
+
             try
             {
                 if (CurrentPosition == null)

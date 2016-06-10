@@ -82,6 +82,9 @@ namespace MyDriving.UWP.Views
             UpdateStats();
             SystemNavigationManager systemNavigationManager = SystemNavigationManager.GetForCurrentView();
             systemNavigationManager.BackRequested += SystemNavigationManager_BackRequested;
+            if(App.needsSync)
+                await MyDriving.Helpers.AuthenticationHelper.CheckTokenExpired();
+            App.needsSync = false;
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)

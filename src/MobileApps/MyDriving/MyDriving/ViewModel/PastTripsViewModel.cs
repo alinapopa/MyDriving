@@ -70,6 +70,9 @@ namespace MyDriving.ViewModel
             if (IsBusy)
                 return;
 
+            await MyDriving.Helpers.AuthenticationHelper.CheckTokenExpired();
+
+
             var progressDialog = UserDialogs.Instance.Loading("Loading trips...", maskType: MaskType.Clear);
 
             try

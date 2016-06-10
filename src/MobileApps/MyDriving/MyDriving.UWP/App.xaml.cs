@@ -37,6 +37,7 @@ namespace MyDriving.UWP
             Microsoft.HockeyApp.HockeyClient.Current.Configure(Logger.HockeyAppUWP);
         }
 
+        public static bool needsSync;  //needs to sync at launch
         /// <summary>
         ///     Invoked when the application is launched normally by the end user.  Other entry points
         ///     will be used such as when the application is launched to open a specific file.
@@ -61,6 +62,7 @@ namespace MyDriving.UWP
 
                 if (Settings.Current.IsLoggedIn)
                 {
+                    needsSync = true;
                     //When the first screen of the app is launched after user has logged in, initialize the processor that manages connection to OBD Device and to the IOT Hub
                     MyDriving.Services.OBDDataProcessor.GetProcessor().Initialize(ViewModel.ViewModelBase.StoreManager);
 

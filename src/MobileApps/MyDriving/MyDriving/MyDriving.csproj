@@ -41,6 +41,7 @@
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Helpers\AuthenticationHelper.cs" />
     <Compile Include="Helpers\RelayCommand.cs" />
     <Compile Include="Interfaces\IHubIOT.cs" />
     <Compile Include="Interfaces\IOBDDevice.cs" />

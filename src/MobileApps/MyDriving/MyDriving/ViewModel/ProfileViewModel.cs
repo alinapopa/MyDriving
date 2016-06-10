@@ -174,6 +174,8 @@ namespace MyDriving.ViewModel
             if (IsBusy)
                 return false;
 
+            await MyDriving.Helpers.AuthenticationHelper.CheckTokenExpired();
+
             var progress = Acr.UserDialogs.UserDialogs.Instance.Loading("Loading profile...",
                 maskType: Acr.UserDialogs.MaskType.Clear);
             var error = false;
